@@ -1,1 +1,818 @@
-h
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lenny Faces Copy & Paste</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .copy-btn { cursor: pointer; transition: background 0.3s; }
+        .copy-btn:hover { background: #ddd; }
+        .notification {
+            position: absolute;
+            background: green;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .notification.show { opacity: 1; }
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: linear-gradient(135deg, #1e40af, #3b82f6); /* Gradient background */
+            color: white;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #1e40af, #3b82f6); /* Same as header color */
+            color: white;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .copy-section {
+            width: 100%;
+            background: white;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+        }
+        .copy-section textarea {
+            width: 50%; /* Smaller width for centralization */
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            resize: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s;
+            color: black; /* Text color set to black */
+        }
+        .copy-section textarea::placeholder {
+            color: #888; /* Placeholder text color */
+        }
+        .copy-section textarea:focus {
+            outline: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        .copy-section button {
+            padding: 8px 16px;
+            background: #1e40af;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s, transform 0.3s;
+        }
+        .copy-section button:hover {
+            background: #3b82f6;
+            transform: translateY(-2px);
+        }
+        .share-section {
+            width: 100%;
+            background: white;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+        }
+        .share-section button {
+            padding: 8px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px; /* Smaller size */
+            height: 40px; /* Smaller size */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s, transform 0.3s;
+        }
+        .share-section button.facebook {
+            background: #3b5998; /* Facebook blue */
+            color: white;
+        }
+        .share-section button.twitter {
+            background: #1da1f2; /* Twitter blue */
+            color: white;
+        }
+        .share-section button.whatsapp {
+            background: #25d366; /* WhatsApp green */
+            color: white;
+        }
+        .share-section button:hover {
+            transform: translateY(-2px);
+        }
+        .footer-links {
+            text-align: center;
+            padding: 10px;
+            background: #1e40af;
+        }
+        .footer-links a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        .menu {
+            position: fixed;
+            top: 0;
+            left: -250px; /* Hide by default */
+            width: 250px;
+            height: 100vh;
+            background: #1e40af; /* Same as header color */
+            color: white;
+            transition: left 0.3s ease;
+            z-index: 1000;
+        }
+        .menu.show {
+            left: 0; /* Slide in */
+        }
+        .menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            padding-top: 60px; /* Space for header */
+        }
+        .menu ul li {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .menu ul li a {
+            color: white;
+            text-decoration: none;
+        }
+        .menu ul li a:hover {
+            color: #ddd;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .overlay.show {
+            display: block;
+        }
+        .main-content {
+            padding: 20px;
+            padding-bottom: 200px; /* Space for footer */
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Overlay for Menu -->
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <!-- Header with Menu Toggle -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="text-3xl font-bold">Lenny Faces </h1>
+            <button id="menu-toggle" class="text-white focus:outline-none" onclick="toggleMenu()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Side Menu -->
+    <div id="menu" class="menu">
+        <ul>
+            <li><a href="#happy">Happy Faces</a></li>
+            <li><a href="#sad">Sad Faces</a></li>
+            <li><a href="#angry">Angry Faces</a></li>
+            <li><a href="#random">Random Faces</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+                
+        <!-- Happy Faces -->
+        <div id="happy" class="mt-6">
+            <h3 class="text-xl font-bold">Lenny Faces</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                <div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡~ ͜ʖ ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡ʘ ͜ʖ ͡ʘ)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡o ͜ʖ ͡o)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜V ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ل͜ ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͠° ͟ʖ ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡ – ✧)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ʖ̯ ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡ ͡° ͜ ʖ ͡ ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡ಠ ʖ̯ ͡ಠ)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡◉ ͜ʖ ͡◉)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡◔ ͜ʖ ͡◔)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡o ͜ʖ ͡o)つ──☆*:・ﾟ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)>⌐■-■</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(⌐■_■)( ͡° ͜ʖ ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(☞ ͡° ͜ʖ ͡°)☞</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(づ ͡° ͜ʖ ͡°)づ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡ᵔ ͜ʖ ͡ᵔ )</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ง ͠° ͟ل͜ ͡°)ง</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)ง</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ʘ ͜ʖ ʘ)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ᴥ ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡ಥ ͜ʖ ͡ಥ)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)>⌐■-■</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(☞ﾟヮﾟ)☞</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡°□ ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">ʕ ͡° ͜ʖ ͡°ʔ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)=ε✄</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡◉ ͜ʖ ͡◉)╭∩╮</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)ノ⌒</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(° ͜ʖ °)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ‾ ʖ̫ ‾)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ‾ʖ̫‾)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)>⌐■</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡ °)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡ᵔ ͜ʖ ͡ᵔ )</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡◔ ͜ʖ ͡◔ )</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)=</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(☞ ͡° ͜ʖ ͡°)☞</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜V ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ノ͡° ͜ʖ ͡°)ノ︵┻┻</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ノ͡° ͜ʖ ͡°)ノ︵┻━┻</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡o ͜ʖ ͡o)╭∩╮</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)>⌐■-■</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)>⌐■</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(☞ﾟ∀ﾟ)☞</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(づ｡◕‿‿◕｡)づ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(っ◕‿◕)っ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡ಠ ʖ̯ ͡ಠ)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ง ͡ʘ ͜ʖ ͡ʘ)ง</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡ °)ノ⌒</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(° ͜ʖ °)ノ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ノ͡° ͜ʖ ͡°)ノ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)>⌐■-■</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(╯°□°）╯︵ ┻━┻</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡o ͜ʖ ͡o)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡ °)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡ಥ ͜ʖ ͡ಥ)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ノ͡° ͜ʖ ͡°)ノ︵┻━┻</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡ᵔ ͜ʖ ͡ᵔ )</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ノ͡° ͜ʖ ͡°)ノ︵┻━┻</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡ °)ง</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ง ͠° ͟ل͜ ͡°)ง</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(☞ ͡° ͜ʖ ͡°)☞</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(▀̿Ĺ̯▀̿ ̿)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ง ͠° ͟ل͜ ͡°)ง</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ง •̀_•́)ง</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ง'̀-'́)ง</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)=ε✄</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(͡° ͜ʖ ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(╭☞ ͡° ͜ʖ ͡°)╭☞</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(☞ ͡° ͜ʖ ͡°)☞</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ノ͡° ͜ʖ ͡°)ノ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(͡• ͜໒ ͡• )</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(͡° ͜ʖ ͡°)=ε✄</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(☞ﾟヮﾟ)☞</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)つ──☆*:・ﾟ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)╭∩╮</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)ﾉ⌐■-■</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)ノ⌐■-■</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)つ─☆*:・ﾟ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)ノ⌐■</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡ °)っ✂╰⋃╯</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)=ε✄</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡ಠ ͜ʖ ͡ಠ)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡ °)っ✂</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(͡° ͜ʖ ͡°)つ✄</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)╭∩╮</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(╯ ͡° ͜ʖ ͡°)╯︵ ┻━┻</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ノ ͡° ͜ʖ ͡°)ノ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)╭∩╮</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡°╭͜ʖ╮͡° )</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)>⌐■-■</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ノ͡° ͜ʖ ͡°)ノ︵┻━┻</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ง ͠° ͟ل͜ ͡°)ง</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ง •̀_•́)ง</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(╯°□°)╯︵ ┻━┻</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(⌐■_■)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(¬‿¬)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡ °)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ʖ̯ ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡◉ ͜ʖ ͡◉)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(͡ ͡° ͜ つ ͡͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡⚆ ͜ʖ ͡⚆)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(͠≖ ͜ʖ͠≖)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡◔ ͜ʖ ͡◔ )</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡ °)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡◉ ͜ʖ ͡◉)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">( ͡° ͜ʖ ͡°)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(▀̿Ĺ̯▀̿ ̿)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(⌐■_■)</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ノ͡° ͜ʖ ͡°)ノ︵┻━┻</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(☞ ͡° ͜ʖ ͡°)☞</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ノ ͡° ͜ʖ ͡°)ノ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(つ ͡° ͜ʖ ͡°)つ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(っ ͡° ͜ʖ ͡°)っ</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(╯ ͡° ͜ʖ ͡°)╯︵ ┻━┻</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(ノ ͡° ͜ʖ ͡°)ノ︵┻━┻</span>
+<div class="notification">Copied!</div>
+</div>
+<div class="relative">
+<span class="copy-btn p-2 bg-white shadow rounded text-lg" onclick="copyText(this)">(╭☞ ͡° ͜ʖ ͡°)╭☞</span>
+<div class="notification">Copied!</div>
+</div>
+</div>
+</div><br><br>
+
+        
+        <!-- Add more content here to test scrolling -->
+        <div class="mt-6">
+            <h3 class="text-xl font-bold">Lenny Faces: The Quirky World of Text Art That Wins the Heart</h3>
+            <br><br><p class="mt-2">Hey friends! 😎 Today we will talk about one such thing that creates a little sensation on the internet – Lenny Faces! What is it, how was it made, and why is it so popular? Come on, let's start its journey with some fun and some chatter! ( ͡° ͜ʖ ͡°)What is Lenny Face?Lenny Face is a text-based emoticon that is made with special characters of the keyboard. It is a face that sometimes gives naughty, sometimes funny, and sometimes super cute expressions. For example, see: ( ͡° ͜ʖ ͡°) – This one is a bit scary, isn't it? 😜</p>
+<br>
+<p class="mt-2"> These are also called text faces or ASCII art, but on hearing the name “Lenny” people get a smile on their faces. These faces are widely used in online chats, memes, and social media. When words don't work, Lenny says – “I am here!” 😏How was Lenny born? The origin of Lenny Face dates back to the golden days of the internet, around 2012. On a forum, someone randomly created this combination – ( ͡° ͜ʖ ͡°). That's it, then what? It went viral! People twisted it in their own way and new expressions started coming up. How did the name “Lenny” come to be? It's a bit of a mystery, but maybe some user called this face “Lenny” and it became a thing. Now Lenny is a legend, brother! 😎</p>
+<br>
+<p class="mt-2">ASCII art is old – since the 1960s people used to make simple designs on computers. But Lenny gave a new swag to this art. Nowadays there are even websites which provide ready-made Lenny Faces – copy-paste and enjoy!Why is Lenny so special? Mood Ka Magic: Lenny Face is perfect for every mood. Are you Happy? (✿◕‿◕) Sad are you? (╥╥) Want to have a little fun? ( ͡° ͜ʖ ͡°) There's a Lenny ready for every emotion!No Language Barrier: English, Hindi, or any other language – Lenny understands everything. This is universal, brother! 😍Father of Memes: Instagram, Reddit, or WhatsApp – Lenny can be seen everywhere in memes. Sometimes with a joke, sometimes for a little trolling. </p>
+<br>
+<p class="mt-2">This is a vibe!Super Easy: Anyone can make it. Just play a bit on the keyboard and your Lenny is ready! If you are not able to make it, there are lots of generators online. Popular Lenny Faces And Their Vibe, follow some famous Lenny Faces and understand their mood:( ͡° ͜ʖ ͡°): This is the OG Lenny – a little bit of sarcasm, a little bit of mystery. When you want to say, “I understood, but I will not tell” 😏(╯°□°)╯︵ ┻━┻: To show anger like this – I flipped the table, that's it!(◕‿◕): Super cute, when you want to send love from heart to heart.(ಥ_ಥ): Are you feeling like crying? This face says everything. (☞ ͡° ͜ʖ ͡°)☞: This pointing Lenny when boss mode is on!Real-Life Use of Lenny FacesNow imagine, you are talking to your friend on WhatsApp. He said, "Bhai, I failed in the exam." What will you say? Just send this – (╥╥). Everyone will understand! Or if someone cracks a naughty joke, then send it ( ͡° ͜ʖ ͡°) and make fun of him. 😜</p>
+<br><p class="mt-2">Lenny is famous on social media too. Be it Twitter or Reddit, people use it for trolling, sarcasm, or just for fun. And if someone runs a meme page, then without Lenny it's all right, get it? A little Hinglish fun with Lenny Mix Lenny Faces with Hinglish and it's fun! Like:“Bhai, I am going to a party” – (☞ ͡° ͜ʖ ͡°)☞“Friend, my crush did not reply” – (ಥ_ಥ)“I am the boss” – (⌐■_■)</p>
+<br>
+<p class="mt-2">These faces say what is in the heart, and with a little Desi flavour comes more swag! 😎Where will Lenny go in the future?The internet keeps changing but the craze for Lenny will not decrease. New emojis will come, memes will change, but these text faces will keep their place. Because Lenny is not just a face, it's an emotion, it's an attitude. 😏 It's possible that in the future a 3D version of Lenny Faces will come or someone will bring it to life in AR. Until then, we're happy with our keyboards!Come on, make a Lenny!So friends, how did you like this little intro of Lenny Faces? Next time when you chat, do try a Lenny Face. And yes, make a new Lenny Face of your own and let me know – maybe we'll start a new trend! 😉( ͡° ͜ʖ ͡°) Stay quirky, stay Lenny! 😜</p>
+        </div>
+    </div>
+
+    <!-- Footer with Copy Section, Share Buttons, and Links -->
+    <footer class="footer">
+        <!-- Copy Section -->
+        <div class="copy-section">
+            <textarea id="text-area" class="flex-1 p-2 border rounded" placeholder="Type your text here or paste faces..."></textarea>
+            <button onclick="copyCombinedText()" class="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
+                <i class="fas fa-copy"></i> Copy All
+            </button>
+        </div>
+        <!-- Share Buttons -->
+        <div class="share-section">
+            <button onclick="shareOnFacebook()" class="facebook">
+                <i class="fab fa-facebook"></i>
+            </button>
+            <button onclick="shareOnTwitter()" class="twitter">
+                <i class="fab fa-twitter"></i>
+            </button>
+            <button onclick="shareOnWhatsApp()" class="whatsapp">
+                <i class="fab fa-whatsapp"></i>
+            </button>
+        </div>
+        <!-- Footer Links -->
+        <div class="footer-links">
+            <a href="#">About</a> |
+            <a href="#">Privacy Policy</a> |
+            <a href="#">Contact</a>
+        </div>
+    </footer>
+
+    <script>
+        // Function to copy text and show notification
+        function copyText(element) {
+            const text = element.innerText;
+            navigator.clipboard.writeText(text);
+            showNotification(element.nextElementSibling);
+
+            // Append the copied text to the textarea
+            const textarea = document.getElementById('text-area');
+            textarea.value += text + ' ';
+        }
+
+        // Function to show notification
+        function showNotification(notification) {
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000); // Hide after 2 seconds
+        }
+
+        // Function to copy combined text from textarea
+        function copyCombinedText() {
+            const textarea = document.getElementById('text-area');
+            navigator.clipboard.writeText(textarea.value);
+            alert('Copied all text!');
+        }
+
+        // Toggle Menu
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            const overlay = document.getElementById('overlay');
+            menu.classList.toggle('show');
+            overlay.classList.toggle('show');
+        }
+
+        // Share on Facebook
+        function shareOnFacebook() {
+            const text = document.getElementById('text-area').value;
+            const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        // Share on Twitter
+        function shareOnTwitter() {
+            const text = document.getElementById('text-area').value;
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        // Share on WhatsApp
+        function shareOnWhatsApp() {
+            const text = document.getElementById('text-area').value;
+            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>
